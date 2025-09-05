@@ -208,7 +208,7 @@ footer { color: var(--muted); padding: 16px; border-top: 1px solid var(--border)
     inputKeys.forEach(k=>{
       const n = el(k); if(!n) return;
       if(n.tagName==='SELECT') n.addEventListener('change', ()=>{ state[k]=n.value; lastChangedKey=k; recalc(); });
-      else n.addEventListener('input', ()=>{ const v=parseFloat(n.value); state[k] = isFinite(v)?v:state[k]; lastChangedKey=k; recalc(); });
+      else n.addEventListener('input', ()=>{ const v=parseNum(n.value); state[k] = isFinite(v)?v:state[k]; lastChangedKey=k; recalc(); });
     });
 
     // Scenario dropdown
@@ -444,4 +444,4 @@ footer { color: var(--muted); padding: 16px; border-top: 1px solid var(--border)
     syncInputs();
     render();
   </script></body>
-                           </html> 
+</html>
