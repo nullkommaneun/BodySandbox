@@ -1,0 +1,447 @@
+<!doctype html>
+
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Physio‑Sandbox · Textbasierte Webapp (Advanced)</title>
+  <style>
+    :root {
+      --bg: #0e1116; --panel: #151a22; --muted: #93a1b1; --text: #e6edf3;
+      --green: #2ecc71; --amber: #f1c40f; --red: #e74c3c; --blue: #4aa3ff; --violet: #b392f0;
+      --card: #0f141b; --border: #2b3240;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial; }
+    header { padding: 16px 20px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, #121723, #0e131b); position: sticky; top: 0; z-index: 10; }
+    h1 { font-size: 18px; margin: 0 0 6px; letter-spacing: 0.2px; }
+    header p { margin: 0; color: var(--muted); }
+    .container { max-width: 1350px; margin: 0 auto; padding: 16px; }.grid { display: grid; grid-template-columns: 1.05fr 1.35fr; gap: 16px; }
+.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.panel h2 { font-size: 14px; letter-spacing: 0.4px; text-transform: uppercase; color: var(--muted); margin: 0; padding: 10px 12px; border-bottom: 1px solid var(--border); background: #0f141b; }
+.panel .body { padding: 12px; }
+fieldset { border: 1px dashed var(--border); border-radius: 10px; margin: 0 0 12px; }
+legend { color: var(--muted); padding: 0 8px; font-size: 12px; }
+
+.row { display: grid; grid-template-columns: 1fr 160px 90px; gap: 8px; align-items: center; padding: 6px 8px; border-bottom: 1px dashed #1f2632; }
+.row:last-child { border-bottom: 0; }
+.row label { color: #c8d1dc; }
+input[type="number"], select { width: 100%; background: #0b0f15; color: var(--text); border: 1px solid #2a3140; border-radius: 8px; padding: 8px 10px; }
+.unit { color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
+
+.controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; align-items: center; }
+button { background: #0b0f15; color: var(--text); border: 1px solid #2a3140; padding: 8px 10px; border-radius: 10px; cursor: pointer; }
+button:hover { border-color: #3a4356; }
+.toggle { display: inline-flex; border: 1px solid #2a3140; border-radius: 12px; overflow: hidden; }
+.toggle button { border: 0; padding: 6px 10px; }
+.toggle button.active { background: #182033; }
+
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px; }
+.card h3 { margin: 0 0 6px; font-size: 14px; letter-spacing: .2px; color: #cfd7e3; }
+.card .value { font-size: 18px; font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); font-size: 12px; }
+.badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 2px 8px; border: 1px solid var(--border); font-size: 12px; }
+.g { background: rgba(46,204,113,.12); border-color: rgba(46,204,113,.35); }
+.y { background: rgba(241,196,15,.12); border-color: rgba(241,196,15,.35); }
+.r { background: rgba(231,76,60,.12); border-color: rgba(231,76,60,.35); }
+.b { background: rgba(74,163,255,.12); border-color: rgba(74,163,255,.35); }
+.v { background: rgba(179,146,240,.12); border-color: rgba(179,146,240,.35); }
+
+@keyframes flash { 0% { box-shadow: 0 0 0 rgba(74,163,255,0); } 30% { box-shadow: 0 0 0 4px rgba(74,163,255,.15); } 100% { box-shadow: 0 0 0 rgba(74,163,255,0); } }
+.flash { animation: flash 500ms ease-out; }
+
+.legendbar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+footer { color: var(--muted); padding: 16px; border-top: 1px solid var(--border); margin-top: 12px; }
+.footnote { font-size: 12px; }
+
+.chart-wrap { margin-top: 10px; background: #0b0f15; border: 1px solid var(--border); border-radius: 10px; padding: 8px; }
+.chart-title { color: #cfd7e3; font-size: 13px; margin-bottom: 6px; }
+
+.abbar { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+.sep { opacity:.4; }
+
+@media (max-width: 980px) { .grid { grid-template-columns: 1fr; } .cards { grid-template-columns: 1fr; } }
+
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Physio‑Sandbox (Advanced)</h1>
+    <p>Reaktive Wechselwirkungen mit Einheiten‑Toggle, Szenarien, Interventions‑Sliders, Sensitivitätsanalyse und A/B‑Vergleich. Kein Medizinprodukt.</p>
+  </header>  <div class="container">
+    <div class="grid">
+      <section class="panel">
+        <h2>Eingaben</h2>
+        <div class="body">
+          <div class="controls">
+            <button id="btn-optimum" title="Optimum‑Defaults">Optimum</button>
+            <button id="btn-reset" title="Seitendefaults">Reset</button>
+            <div class="toggle" title="Glukose‑Einheit">
+              <button id="u-glc-mg" class="active">Glukose mg/dL</button>
+              <button id="u-glc-mmol">mmol/L</button>
+            </div>
+            <div class="toggle" title="Lipid‑Einheit">
+              <button id="u-lip-mg" class="active">Lipide mg/dL</button>
+              <button id="u-lip-mmol">mmol/L</button>
+            </div>
+            <label class="muted" style="margin-left:6px">Szenario:</label>
+            <select id="scenario"></select>
+            <label class="muted" style="margin-left:6px">Horizont:</label>
+            <input id="horizon_weeks" type="number" min="1" max="52" step="1" style="width:72px" />
+            <span class="muted">Wochen</span>
+          </div><fieldset>
+        <legend>Demografie & Körper</legend>
+        <div class="row"><label for="sex">Geschlecht</label><select id="sex"><option value="male">männlich</option><option value="female">weiblich</option></select><div class="unit">—</div></div>
+        <div class="row"><label for="age">Alter</label><input id="age" type="number" min="14" max="90" step="1"><div class="unit">Jahre</div></div>
+        <div class="row"><label for="height_cm">Größe</label><input id="height_cm" type="number" min="120" max="220" step="1"><div class="unit">cm</div></div>
+        <div class="row"><label for="weight_kg">Gewicht</label><input id="weight_kg" type="number" min="40" max="200" step="0.1"><div class="unit">kg</div></div>
+        <div class="row"><label for="waist_cm">Taille</label><input id="waist_cm" type="number" min="50" max="160" step="1"><div class="unit">cm</div></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Vitalparameter</legend>
+        <div class="row"><label for="rhr">Ruhepuls</label><input id="rhr" type="number" min="35" max="110" step="1"><div class="unit">bpm</div></div>
+        <div class="row"><label for="sbp">SYS</label><input id="sbp" type="number" min="80" max="220" step="1"><div class="unit">mmHg</div></div>
+        <div class="row"><label for="dbp">DIA</label><input id="dbp" type="number" min="40" max="140" step="1"><div class="unit">mmHg</div></div>
+        <div class="row"><label for="pal">Aktivitätsfaktor (PAL)</label><input id="pal" type="number" min="1.2" max="2.5" step="0.05"><div class="unit">× RMR</div></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Blutwerte</legend>
+        <div class="row"><label for="glucose">Nüchtern‑Glukose</label><input id="glucose" type="number" step="0.1"><div class="unit" id="u-glc-label">mg/dL</div></div>
+        <div class="row"><label for="insulin">Nüchtern‑Insulin</label><input id="insulin" type="number" min="1" max="60" step="0.1"><div class="unit">µU/mL</div></div>
+        <div class="row"><label for="hba1c">HbA1c</label><input id="hba1c" type="number" min="4" max="12" step="0.1"><div class="unit">%</div></div>
+        <div class="row"><label for="tc">Gesamt‑Cholesterin</label><input id="tc" type="number" step="0.1"><div class="unit" id="u-lip-label-tc">mg/dL</div></div>
+        <div class="row"><label for="hdl">HDL</label><input id="hdl" type="number" step="0.1"><div class="unit" id="u-lip-label-hdl">mg/dL</div></div>
+        <div class="row"><label for="tg">Triglyzeride</label><input id="tg" type="number" step="0.1"><div class="unit" id="u-lip-label-tg">mg/dL</div></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Energie</legend>
+        <div class="row"><label for="kcal_intake">Kalorienzufuhr (Basis)</label><input id="kcal_intake" type="number" min="800" max="5000" step="10"><div class="unit">kcal/Tag</div></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Interventionen (wirken auf Bilanz)</legend>
+        <div class="row"><label for="steps_extra">Zusatz‑Schritte/Tag</label><input id="steps_extra" type="number" min="0" max="20000" step="500"><div class="unit">Schritte</div></div>
+        <div class="row"><label for="kcal_delta">ΔKalorien zur Basis</label><input id="kcal_delta" type="number" min="-2000" max="2000" step="25"><div class="unit">kcal/Tag</div></div>
+        <div class="row"><label for="strength_pw">Krafttraining</label><input id="strength_pw" type="number" min="0" max="7" step="1"><div class="unit">Einheiten/Woche</div></div>
+      </fieldset>
+
+      <div class="abbar">
+        <strong>A/B‑Vergleich:</strong>
+        <button id="snapA">Snapshot A</button>
+        <button id="snapB">Snapshot B</button>
+        <span class="muted">|</span>
+        <button id="clearAB">Zurücksetzen A/B</button>
+      </div>
+
+      <div class="legendbar">
+        <span class="badge g">gut</span><span class="badge y">beobachten</span><span class="badge r">kritisch</span><span class="badge b">Info</span><span class="badge v">abgeleitet</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Abgeleitete Kennzahlen & Live‑Wechselwirkungen</h2>
+    <div class="body">
+      <div class="cards" id="cards"></div>
+      <div class="chart-wrap">
+        <div class="chart-title">Gewichtsprojektion (linear, grob) – nächst <span id="h-weeks">12</span> Wochen</div>
+        <svg id="chart" width="100%" height="180" viewBox="0 0 600 180" preserveAspectRatio="none" aria-label="Gewichtsprojektion"></svg>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer class="footnote">Dieses Tool nutzt vereinfachte Näherungen (Mifflin‑St. Jeor, Friedewald, Uth‑Sørensen etc.). Keine Diagnose/Behandlung. Einheiten‑Umrechnung: Glukose 1 mmol/L ≈ 18.0182 mg/dL; Cholesterin 1 mmol/L ≈ 38.67 mg/dL; Triglyzeride 1 mmol/L ≈ 88.57 mg/dL. Energie‑Heuristiken: Schritt ≈ 0,045 kcal; Kraft‑Einheit ≈ 50 kcal/Tag im Wochenschnitt.</footer>
+
+  </div>  <script type="module">
+    // ===== Units & conversion =====
+    const U = {
+      glc: { mode: 'mg', MG_PER_MMOL: 18.0182 },
+      lip: { mode: 'mg', MG_PER_MMOL_CHOL: 38.67, MG_PER_MMOL_TG: 88.57 }
+    };
+    const mgdl_to_mmol = (mg, factor) => mg / factor;
+    const mmol_to_mgdl = (mmol, factor) => mmol * factor;
+
+    // ===== Defaults, Optimum, Scenarios =====
+    const defaults = {
+      sex: 'male', age: 35, height_cm: 180, weight_kg: 75, waist_cm: 84,
+      rhr: 55, sbp: 118, dbp: 76, pal: 1.6,
+      glucose: 85, insulin: 5.0, hba1c: 5.0, tc: 175, hdl: 60, tg: 90,
+      kcal_intake: 2400, horizon_weeks: 12,
+      steps_extra: 0, kcal_delta: 0, strength_pw: 0
+    };
+    const optimum = {
+      sex: 'male', age: 25, height_cm: 180, weight_kg: 72, waist_cm: 80,
+      rhr: 52, sbp: 115, dbp: 75, pal: 1.75,
+      glucose: 82, insulin: 4.5, hba1c: 5.0, tc: 170, hdl: 62, tg: 80,
+      kcal_intake: 2500, horizon_weeks: 12,
+      steps_extra: 3000, kcal_delta: 0, strength_pw: 2
+    };
+    const scenarios = {
+      Sitzend: { pal: 1.4, kcal_intake: 2200, steps_extra: 1000, strength_pw: 0 },
+      Aktiv: { pal: 1.9, kcal_intake: 2700, steps_extra: 8000, strength_pw: 3 },
+      Nachtschicht: { pal: 1.6, kcal_intake: 2500, steps_extra: 4000, strength_pw: 1 }
+    };
+
+    const state = { ...defaults };
+
+    // ===== Helpers =====
+    const el = id => document.getElementById(id);
+    const toFixed = (v, n=1) => (isFinite(v) ? Number(v).toFixed(n) : '—');
+    const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+    const S = { G:'g', Y:'y', R:'r', B:'b', V:'v' };
+    const deepClone = o => JSON.parse(JSON.stringify(o));
+
+    // track last changed key for sensitivity
+    let lastChangedKey = null;
+
+    // ===== Inputs registration =====
+    const inputKeys = ['sex','age','height_cm','weight_kg','waist_cm','rhr','sbp','dbp','pal','glucose','insulin','hba1c','tc','hdl','tg','kcal_intake','horizon_weeks','steps_extra','kcal_delta','strength_pw'];
+    function syncInputs(){ inputKeys.forEach(k=>{ const n=el(k); if(!n) return; if(n.tagName==='SELECT'){ n.value = state[k]; } else { n.value = state[k]; } }); updateUnitLabels(); }
+
+    inputKeys.forEach(k=>{
+      const n = el(k); if(!n) return;
+      if(n.tagName==='SELECT') n.addEventListener('change', ()=>{ state[k]=n.value; lastChangedKey=k; recalc(); });
+      else n.addEventListener('input', ()=>{ const v=parseFloat(n.value); state[k] = isFinite(v)?v:state[k]; lastChangedKey=k; recalc(); });
+    });
+
+    // Scenario dropdown
+    const scenarioSel = el('scenario');
+    Object.keys(scenarios).forEach(name=>{ const o=document.createElement('option'); o.value=name; o.textContent=name; scenarioSel.appendChild(o); });
+    scenarioSel.addEventListener('change', ()=>{ const s=scenarios[scenarioSel.value]; Object.assign(state, s); syncInputs(); lastChangedKey='scenario'; recalc(true); });
+
+    // Buttons
+    el('btn-reset').addEventListener('click', ()=>{ Object.assign(state, defaults); syncInputs(); lastChangedKey='reset'; recalc(true); });
+    el('btn-optimum').addEventListener('click', ()=>{ Object.assign(state, optimum); syncInputs(); lastChangedKey='optimum'; recalc(true); });
+
+    // Unit toggles
+    const glcMgBtn = el('u-glc-mg');
+    const glcMmolBtn = el('u-glc-mmol');
+    const lipMgBtn = el('u-lip-mg');
+    const lipMmolBtn = el('u-lip-mmol');
+
+    function setActive(btn, active){ btn.classList.toggle('active', !!active); }
+
+    glcMgBtn.addEventListener('click', ()=>{ if(U.glc.mode==='mg') return; state.glucose = mmol_to_mgdl(state.glucose, U.glc.MG_PER_MMOL); U.glc.mode='mg'; updateUnitLabels(); syncInputs(); lastChangedKey='units_glc'; recalc(true); setActive(glcMgBtn,true); setActive(glcMmolBtn,false); });
+    glcMmolBtn.addEventListener('click', ()=>{ if(U.glc.mode==='mmol') return; state.glucose = mgdl_to_mmol(state.glucose, U.glc.MG_PER_MMOL); U.glc.mode='mmol'; updateUnitLabels(); syncInputs(); lastChangedKey='units_glc'; recalc(true); setActive(glcMgBtn,false); setActive(glcMmolBtn,true); });
+
+    lipMgBtn.addEventListener('click', ()=>{ if(U.lip.mode==='mg') return; state.tc = mmol_to_mgdl(state.tc, U.lip.MG_PER_MMOL_CHOL); state.hdl = mmol_to_mgdl(state.hdl, U.lip.MG_PER_MMOL_CHOL); state.tg = mmol_to_mgdl(state.tg, U.lip.MG_PER_MMOL_TG); U.lip.mode='mg'; updateUnitLabels(); syncInputs(); lastChangedKey='units_lip'; recalc(true); setActive(lipMgBtn,true); setActive(lipMmolBtn,false); });
+    lipMmolBtn.addEventListener('click', ()=>{ if(U.lip.mode==='mmol') return; state.tc = mgdl_to_mmol(state.tc, U.lip.MG_PER_MMOL_CHOL); state.hdl = mgdl_to_mmol(state.hdl, U.lip.MG_PER_MMOL_CHOL); state.tg = mgdl_to_mmol(state.tg, U.lip.MG_PER_MMOL_TG); U.lip.mode='mmol'; updateUnitLabels(); syncInputs(); lastChangedKey='units_lip'; recalc(true); setActive(lipMgBtn,false); setActive(lipMmolBtn,true); });
+
+    function updateUnitLabels(){ el('u-glc-label').textContent = U.glc.mode==='mg' ? 'mg/dL' : 'mmol/L'; const lipUnit = U.lip.mode==='mg' ? 'mg/dL' : 'mmol/L'; el('u-lip-label-tc').textContent = lipUnit; el('u-lip-label-hdl').textContent = lipUnit; el('u-lip-label-tg').textContent = lipUnit; }
+
+    // ===== Calculators =====
+    function bmi(){ const h = state.height_cm/100; return state.weight_kg/(h*h); }
+    function bodyFatPct(){ const sexFlag = state.sex==='male'?1:0; const bf = 1.2*bmi() + 0.23*state.age - 10.8*sexFlag - 5.4; return clamp(bf, 3, 60); }
+    function rmr(){ const {weight_kg:w, height_cm:h, age:a} = state; return state.sex==='male' ? (10*w + 6.25*h - 5*a + 5) : (10*w + 6.25*h - 5*a - 161); }
+    function tdee_base(){ return rmr()*state.pal; }
+
+    // Interventions → zusätzliche/verminderte kcal/Tag
+    function kcal_extra_steps(){ return state.steps_extra * 0.045; } // grobe Heuristik
+    function kcal_extra_strength(){ return (state.strength_pw * 50) / 7; } // Durchschnitt über die Woche
+    function intake_effective(){ return state.kcal_intake + state.kcal_delta; }
+    function tdee_effective(){ return tdee_base() + kcal_extra_steps() + kcal_extra_strength(); }
+
+    function energyBalance(){ return intake_effective() - tdee_effective(); }
+    function weightChangePerWeek(){ return energyBalance()/7700; }
+    function mhr(){ return 208 - 0.7*state.age; }
+    function vo2max(){ return 15.3 * (mhr()/state.rhr); }
+    function bpCategory(){ const s=state.sbp, d=state.dbp; if(s<120 && d<80) return ['Optimal', S.G]; if((s>=120&&s<=129)||(d>=80&&d<=84)) return ['Normal', S.G]; if((s>=130&&s<=139)||(d>=85&&d<=89)) return ['Hoch‑normal', S.Y]; if((s>=140&&s<=159)||(d>=90&&d<=99)) return ['Hypertonie Grad 1', S.R]; if((s>=160&&s<=179)||(d>=100&&d<=109)) return ['Hypertonie Grad 2', S.R]; if(s>=180||d>=110) return ['Hypertonie Grad 3', S.R]; return ['Unklar', S.Y]; }
+    function homaIR(){ const glc_mg = U.glc.mode==='mg'? state.glucose : mmol_to_mgdl(state.glucose, U.glc.MG_PER_MMOL); return (glc_mg * state.insulin)/405; }
+    function eAG(){ return 28.7*state.hba1c - 46.7; }
+    function ldl(){ const tc_mg  = U.lip.mode==='mg'? state.tc  : mmol_to_mgdl(state.tc,  U.lip.MG_PER_MMOL_CHOL); const hdl_mg = U.lip.mode==='mg'? state.hdl : mmol_to_mgdl(state.hdl, U.lip.MG_PER_MMOL_CHOL); const tg_mg  = U.lip.mode==='mg'? state.tg  : mmol_to_mgdl(state.tg,  U.lip.MG_PER_MMOL_TG); const v = tc_mg - hdl_mg - (tg_mg/5); return (tg_mg<=400? v : NaN); }
+    function ldlDisplay(){ const v = ldl(); if(!isFinite(v)) return '—'; if(U.lip.mode==='mg') return `${Math.round(v)} mg/dL`; const mmol = v / U.lip.MG_PER_MMOL_CHOL; return `${mmol.toFixed(2)} mmol/L`; }
+    function nonHDL(){ const tc_mg  = U.lip.mode==='mg'? state.tc  : mmol_to_mgdl(state.tc,  U.lip.MG_PER_MMOL_CHOL); const hdl_mg = U.lip.mode==='mg'? state.hdl : mmol_to_mgdl(state.hdl, U.lip.MG_PER_MMOL_CHOL); return tc_mg - hdl_mg; }
+    function tgHdlRatio(){ const tg_mg  = U.lip.mode==='mg'? state.tg  : mmol_to_mgdl(state.tg,  U.lip.MG_PER_MMOL_TG); const hdl_mg = U.lip.mode==='mg'? state.hdl : mmol_to_mgdl(state.hdl, U.lip.MG_PER_MMOL_CHOL); return tg_mg/hdl_mg; }
+    function ldlCat(){ const v = ldl(); if(!isFinite(v)) return ['n. anwendbar (TG hoch)', S.B]; if(v<100) return ['optimal', S.G]; if(v<130) return ['nahe optimal', S.G]; if(v<160) return ['grenzwertig hoch', S.Y]; if(v<190) return ['hoch', S.R]; return ['sehr hoch', S.R]; }
+    function tgHdlCat(){ const r=tgHdlRatio(); if(r<2) return ['günstig', S.G]; if(r<3) return ['beobachten', S.Y]; return ['ungünstig', S.R]; }
+    function bmiCat(){ const v=bmi(); if(v<18.5) return ['Untergewicht', S.Y]; if(v<25) return ['Normal', S.G]; if(v<30) return ['Übergewicht', S.Y]; return ['Adipositas', S.R]; }
+    function bfCat(){ const v=bodyFatPct(); const male=state.sex==='male'; if((male && v<10) || (!male && v<18)) return ['athletisch', S.G]; if((male && v<=20) || (!male && v<=28)) return ['gut', S.G]; if((male && v<=25) || (!male && v<=33)) return ['erhöht', S.Y]; return ['hoch', S.R]; }
+    function metabolicSyndromeCount(){ const male=state.sex==='male'; const waistCrit = male? (state.waist_cm>=94):(state.waist_cm>=80); const tg_mg  = U.lip.mode==='mg'? state.tg  : mmol_to_mgdl(state.tg,  U.lip.MG_PER_MMOL_TG); const hdl_mg = U.lip.mode==='mg'? state.hdl : mmol_to_mgdl(state.hdl, U.lip.MG_PER_MMOL_CHOL); const tgCrit = tg_mg>=150; const hdlCrit = male? (hdl_mg<40):(hdl_mg<50); const bpCrit = (state.sbp>=130 || state.dbp>=85); const glc_mg = U.glc.mode==='mg'? state.glucose : mmol_to_mgdl(state.glucose, U.glc.MG_PER_MMOL); const glcCrit = glc_mg>=100; return [waistCrit+0, tgCrit+0, hdlCrit+0, bpCrit+0, glcCrit+0].reduce((a,b)=>a+b,0); }
+
+    // Derived snapshot for sensitivity & A/B
+    function derivedVector(){
+      return {
+        BMI: bmi(), KFA: bodyFatPct(), RMR: rmr(), TDEE: tdee_effective(), EB: energyBalance(), dW: weightChangePerWeek(),
+        VO2: vo2max(), HOMA: homaIR(), LDL: ldl(), TGHDL: tgHdlRatio(), MS: metabolicSyndromeCount()
+      };
+    }
+
+    const norm = { BMI:1, KFA:1, RMR:50, TDEE:50, EB:100, dW:0.1, VO2:1, HOMA:0.2, LDL:5, TGHDL:0.1, MS:1 };
+    let prevDerived = null;
+
+    // ===== Rendering =====
+    const cardsEl = el('cards');
+    const prevHtml = new Map();
+
+    function renderCard(id, title, valueStr, badges=[], note=''){
+      let div = document.getElementById('card-'+id);
+      if(!div){ div = document.createElement('div'); div.className='card'; div.id='card-'+id; cardsEl.appendChild(div); }
+      const old = prevHtml.get(id);
+      const html = `<h3>${title}</h3><div class="value">${valueStr}</div>${badges.length?`<div class="badges">${badges.map(b=>`<span class=\"badge ${b[1]}\">${b[0]}</span>`).join('')}</div>`:''}${note?`<div class=\"muted\">${note}</div>`:''}`;
+      if(old!==html){ div.innerHTML = html; div.classList.add('flash'); setTimeout(()=>div.classList.remove('flash'), 520); prevHtml.set(id, html); }
+    }
+
+    function mmolSuffix(mg, kind){ if(!isFinite(mg)) return ''; let factor=1; if(kind==='glucose') factor=18.0182; if(kind==='chol') factor=38.67; if(kind==='tg') factor=88.57; const mmol = mg / factor; return ` (≈ ${mmol.toFixed(2)} mmol/L)`; }
+
+    // ===== Projection chart (simple SVG) =====
+    const chart = el('chart');
+    function drawChart(){
+      const weeks = clamp(state.horizon_weeks||12,1,52); el('h-weeks').textContent = weeks;
+      const dw = weightChangePerWeek();
+      const pts = [];
+      for(let i=0;i<=weeks;i++){ const w = state.weight_kg + dw*i; pts.push([i, w]); }
+      const pad = {l:40,r:10,t:10,b:24}; const W=600, H=180; const xMax = weeks; const yVals = pts.map(p=>p[1]); const yMin = Math.min(...yVals)*0.995; const yMax = Math.max(...yVals)*1.005;
+      const x = v=> pad.l + (W-pad.l-pad.r)*(v/xMax);
+      const y = v=> pad.t + (H-pad.t-pad.b)*(1-(v-yMin)/(yMax-yMin||1));
+      const path = pts.map((p,i)=> `${i?'L':'M'}${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join(' ');
+      const y0 = y(state.weight_kg);
+      chart.innerHTML = `
+        <rect x="0" y="0" width="600" height="180" fill="none" />
+        <path d="${path}" fill="none" stroke="currentColor" stroke-width="2" />
+        <line x1="${x(0)}" y1="${y0}" x2="${x(xMax)}" y2="${y0}" stroke="currentColor" stroke-width="1" opacity="0.3" />
+        <text x="${x(0)}" y="${y0-6}" font-size="10" fill="currentColor" opacity="0.6">Start: ${state.weight_kg.toFixed(1)} kg</text>
+        <text x="${x(xMax)}" y="${y(pts[pts.length-1][1])+12}" font-size="10" fill="currentColor" opacity="0.8" text-anchor="end">${pts[pts.length-1][1].toFixed(1)} kg</text>
+        <text x="${x(xMax)}" y="${H-6}" font-size="10" fill="currentColor" opacity="0.6" text-anchor="end">${weeks} Wochen</text>
+      `;
+    }
+
+    // ===== A/B snapshots =====
+    let snapA = null, snapB = null;
+    el('snapA').addEventListener('click', ()=>{ snapA = deepClone(state); render(); });
+    el('snapB').addEventListener('click', ()=>{ snapB = deepClone(state); render(); });
+    el('clearAB').addEventListener('click', ()=>{ snapA=null; snapB=null; render(); });
+
+    function compareAB(){
+      if(!snapA || !snapB) return null;
+      const prevU = {glc:U.glc.mode, lip:U.lip.mode};
+      // For comparison, normalize units to mg/dL internally via derived functions → they handle that already.
+      const cur = deepClone(state);
+      Object.assign(state, snapA); const A = derivedVector();
+      Object.assign(state, snapB); const B = derivedVector();
+      Object.assign(state, cur); // restore
+      return { A, B, d: Object.fromEntries(Object.keys(A).map(k=>[k, B[k]-A[k]])) };
+    }
+
+    // ===== Sensitivity =====
+    function sensitivityItems(newD, oldD){
+      if(!oldD) return [];
+      const items = Object.keys(newD).map(k=>{
+        const delta = newD[k]-oldD[k];
+        const score = Math.abs(delta)/(norm[k]||1);
+        return {k, delta, score};
+      });
+      items.sort((a,b)=> b.score-a.score);
+      return items.slice(0,5);
+    }
+
+    // ===== Main render (cards) =====
+    function render(){
+      const _bmi = bmi();
+      const _bf = bodyFatPct();
+      const _rmr = rmr();
+      const _tdee = tdee_effective();
+      const _tdee_base = tdee_base();
+      const _eb = energyBalance();
+      const _dW = weightChangePerWeek();
+      const _vo2 = vo2max();
+      const _bpC = bpCategory();
+      const _homa = homaIR();
+      const _eag = eAG();
+      const _ldlDisp = ldlDisplay();
+      const _ldlCat = ldlCat();
+      const _nHDL_mg = nonHDL();
+      const _tgHdl = tgHdlRatio();
+      const _tgHdlC = tgHdlCat();
+      const _msCnt = metabolicSyndromeCount();
+
+      const newD = derivedVector();
+      const sens = sensitivityItems(newD, prevDerived);
+      prevDerived = newD;
+
+      cardsEl.innerHTML = '';
+
+      // Body composition
+      renderCard('bmi', 'BMI', toFixed(_bmi,1), [bmiCat(), [`KFA ≈ ${toFixed(_bf,1)} %`, 'v']], 'Körperfett: Deurenberg‑Schätzung.');
+
+      // Energy & interventions
+      const ebBadge = _eb>100 ? ['Überschuss', S.Y] : (_eb<-100 ? ['Defizit', S.Y] : ['≈ ausgeglichen', S.G]);
+      const dWstr = `${_dW>=0?'+':''}${toFixed(_dW,2)} kg/Woche`;
+      const kSteps = kcal_extra_steps();
+      const kStr = kcal_extra_strength();
+      const intakeEff = intake_effective();
+      renderCard('energy', 'Energiebilanz (effektiv)', `${Math.round(_eb)} kcal/Tag`, [ebBadge, [dWstr,'v']], `TDEE(basis) ${Math.round(_tdee_base)} + Schritte ${Math.round(kSteps)} + Kraft ${Math.round(kStr)} = ${Math.round(_tdee)} kcal/Tag; Zufuhr = Basis ${Math.round(state.kcal_intake)} ${state.kcal_delta>=0?'+':'−'} ${Math.abs(Math.round(state.kcal_delta))} = ${Math.round(intakeEff)} kcal/Tag.`);
+
+      renderCard('rmr', 'Grundumsatz (RMR)', `${Math.round(_rmr)} kcal/Tag`, [[`PAL ×${toFixed(state.pal,2)}`, 'b']], 'Mifflin‑St. Jeor.');
+      renderCard('tdee', 'Gesamtumsatz (TDEE effektiv)', `${Math.round(_tdee)} kcal/Tag`, [[`Basis ${Math.round(_tdee_base)}`, 'b'], [`+Schritte ${Math.round(kSteps)}`, 'b'], [`+Kraft ${Math.round(kStr)}`, 'b']]);
+
+      // Fitness & BP
+      renderCard('vo2', 'VO₂max (geschätzt)', `${toFixed(_vo2,1)} ml/kg/min`, [[`MHR≈${Math.round(mhr())} bpm`, 'b']], 'Uth‑Sørensen: 15.3 × (MHR/RHR).');
+      renderCard('bp', 'Blutdruck‑Kategorie', `${state.sbp}/${state.dbp} mmHg`, [_bpC]);
+
+      // Glycemia
+      const glcDisp = U.glc.mode==='mg' ? `${toFixed(state.glucose,0)} mg/dL` : `${toFixed(state.glucose,2)} mmol/L`;
+      const glc_mg = U.glc.mode==='mg'? state.glucose : mmol_to_mgdl(state.glucose, U.glc.MG_PER_MMOL);
+      renderCard('glc', 'Glukose (nüchtern)', glcDisp, [glc_mg<100?['normal',S.G]:(glc_mg<126?['gestört',S.Y]:['Diabetes‑Schwelle',S.R])]);
+      renderCard('homa', 'HOMA‑IR', toFixed(_homa,2), [_homa<1?['niedrig',S.G]:(_homa<2?['erhöht',S.Y]:['Insulinresistenz‑Verdacht',S.R])], 'Glukose×Insulin/405 (mg/dL).');
+      renderCard('a1c', 'HbA1c', `${toFixed(state.hba1c,1)} %`, [[`eAG≈${Math.round(_eag)} mg/dL${mmolSuffix(_eag,'glucose')}`, 'v']], 'Langzeit‑Glukose.');
+
+      // Lipids
+      const hdlDisp = U.lip.mode==='mg' ? `${Math.round(state.hdl)} mg/dL` : `${(state.hdl).toFixed(2)} mmol/L`;
+      const tgDisp  = U.lip.mode==='mg' ? `${Math.round(state.tg)} mg/dL`  : `${(state.tg).toFixed(2)} mmol/L`;
+      renderCard('lipids', 'Lipidprofil', `LDL≈ ${_ldlDisp}`, [_ldlCat, [ `HDL ${hdlDisp}`, 'b' ], [ `TG ${tgDisp}`, 'b' ] ], `Non‑HDL ${Math.round(_nHDL_mg)} mg/dL${mmolSuffix(_nHDL_mg,'chol')}.`);
+      renderCard('tghdl', 'TG/HDL‑Quotient', toFixed(_tgHdl,2), [_tgHdlC]);
+
+      // Metabolic syndrome
+      const msBadges = [[`${_msCnt}/5 Kriterien`, _msCnt>=3?S.R:(_msCnt===2?S.Y:S.G)]];
+      renderCard('metsyn', 'Metabolisches Syndrom (Screening)', `${_msCnt>=3?'Verdacht':'kein Vollbild'}`, msBadges, 'Kriterien: Taille, TG, HDL, Blutdruck, Nüchternglukose.');
+
+      // Dependencies note
+      renderCard('deps', 'Wechselwirkungen (Beispiele)', '→', [
+        ['Gewicht ↑ → BMI, KFA, RMR ↑; BP, HOMA‑IR tendenziell ↑', S.B],
+        ['PAL ↑ → TDEE ↑ → Energiebilanz ↓ (bei gleicher Zufuhr)', S.B],
+        ['Glukose/Insulin ↑ → HOMA‑IR ↑', S.B],
+        ['HDL ↑ oder TG ↓ → TG/HDL‑Quotient ↓', S.B]
+      ], 'Kausalität komplex; vereinfachte Richtungen.');
+
+      // Sensitivity card
+      if(sens && sens.length){
+        const lines = sens.map(e=>{
+          const sign = e.delta>=0?'+':''; const unit = e.k==='EB'?' kcal': (e.k==='dW'?' kg/W':'');
+          return `${e.k}: ${sign}${toFixed(e.delta, e.k==='LDL'||e.k==='RMR'||e.k==='TDEE'||e.k==='EB'?0:2)}${unit}`;
+        }).join(' · ');
+        renderCard('sens', 'Sensitivität (letzte Änderung: '+(lastChangedKey||'—')+')', lines, [[`Top‑${sens.length}`, 'b']], 'Größte relative Änderungen (intern skaliert).');
+      } else {
+        renderCard('sens', 'Sensitivität', '—', [], 'Ändere einen Eingabewert, um die Top‑Effekte zu sehen.');
+      }
+
+      // A/B comparison card
+      const AB = compareAB();
+      if(AB){
+        const keys = ['BMI','KFA','RMR','TDEE','EB','dW','VO2','HOMA','LDL','TGHDL','MS'];
+        const text = keys.map(k=>{
+          const d = AB.d[k]; const sign = d>=0?'+':''; const unit = (k==='EB'?' kcal': (k==='dW'?' kg/W': ''));
+          return `${k}: ${sign}${toFixed(d, k==='RMR'||k==='TDEE'||k==='EB'?0:2)}${unit}`;
+        }).join(' · ');
+        renderCard('ab', 'Vergleich A ↔ B (Δ B−A)', text, [[`Snapshots aktiviert`, 'b']], 'Nutze die Buttons „Snapshot A/B“ links.');
+      } else {
+        renderCard('ab', 'Vergleich A ↔ B', '—', [], 'Lege zwei Snapshots an, um Deltas zu sehen.');
+      }
+
+      drawChart();
+    }
+
+    function recalc(initial=false){ render(); }
+
+    // Initial
+    setActive(glcMgBtn,true); setActive(glcMmolBtn,false); setActive(lipMgBtn,true); setActive(lipMmolBtn,false);
+    syncInputs();
+    render();
+  </script></body>
+                           </html> 
