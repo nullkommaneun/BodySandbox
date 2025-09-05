@@ -1,0 +1,36 @@
+{
+  "groups": [
+    { "id": "body", "title": "Demografie & Körper" },
+    { "id": "vitals", "title": "Vitalparameter" },
+    { "id": "blood", "title": "Blutwerte" },
+    { "id": "energy", "title": "Energie" },
+    { "id": "interventions", "title": "Interventionen" }
+  ],
+  "vars": [
+    { "key": "sex", "group": "body", "type": "enum", "values": ["male","female"], "label": "Geschlecht" },
+    { "key": "age", "group": "body", "type": "number", "min": 14, "max": 90, "step": 1, "unit": "Jahre" },
+    { "key": "height_cm", "group": "body", "type": "number", "min": 120, "max": 220, "step": 1, "unit": "cm" },
+    { "key": "weight_kg", "group": "body", "type": "number", "min": 40, "max": 200, "step": 0.1, "unit": "kg" },
+    { "key": "waist_cm", "group": "body", "type": "number", "min": 50, "max": 160, "step": 1, "unit": "cm" },
+
+    { "key": "rhr", "group": "vitals", "type": "number", "min": 35, "max": 110, "step": 1, "unit": "bpm" },
+    { "key": "sbp", "group": "vitals", "type": "number", "min": 80, "max": 220, "step": 1, "unit": "mmHg" },
+    { "key": "dbp", "group": "vitals", "type": "number", "min": 40, "max": 140, "step": 1, "unit": "mmHg" },
+    { "key": "pal", "group": "vitals", "type": "number", "min": 1.2, "max": 2.5, "step": 0.05, "unit": "× RMR" },
+
+    { "key": "glucose", "group": "blood", "type": "number", "min": 50, "max": 250, "step": 1, "unit": "mg/dL|mmol/L" },
+    { "key": "insulin", "group": "blood", "type": "number", "min": 1, "max": 60, "step": 0.1, "unit": "µU/mL" },
+    { "key": "hba1c", "group": "blood", "type": "number", "min": 4, "max": 12, "step": 0.1, "unit": "%" },
+    { "key": "tc", "group": "blood", "type": "number", "min": 80, "max": 400, "step": 1, "unit": "mg/dL|mmol/L" },
+    { "key": "hdl", "group": "blood", "type": "number", "min": 20, "max": 120, "step": 1, "unit": "mg/dL|mmol/L" },
+    { "key": "tg", "group": "blood", "type": "number", "min": 30, "max": 600, "step": 1, "unit": "mg/dL|mmol/L" },
+
+    { "key": "kcal_intake", "group": "energy", "type": "number", "min": 800, "max": 5000, "step": 10, "unit": "kcal/Tag" },
+
+    { "key": "steps_extra", "group": "interventions", "type": "number", "min": 0, "max": 20000, "step": 500, "unit": "Schritte" },
+    { "key": "kcal_delta", "group": "interventions", "type": "number", "min": -2000, "max": 2000, "step": 25, "unit": "kcal/Tag" },
+    { "key": "strength_pw", "group": "interventions", "type": "number", "min": 0, "max": 7, "step": 1, "unit": "Einheiten/Woche" },
+
+    { "key": "horizon_weeks", "group": "energy", "type": "number", "min": 1, "max": 52, "step": 1, "unit": "Wochen" }
+  ]
+}
