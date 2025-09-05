@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Physio‑Sandbox · Modular</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Physio‑Sandbox (Modular)</h1>
+    <p>Reaktive Wechselwirkungen, Einheiten‑Toggle, Interventionen, Sensitivität, A/B‑Vergleich, Undo/Redo, Export/Import. Kein Medizinprodukt.</p>
+  </header>
+
+  <div class="container">
+    <div class="grid">
+      <section class="panel">
+        <h2>Eingaben</h2>
+        <div class="body">
+          <div class="controls">
+            <button data-action="optimum">Optimum</button>
+            <button data-action="reset">Reset</button>
+            <button data-action="undo" title="Rückgängig">Undo</button>
+            <button data-action="redo" title="Wiederholen">Redo</button>
+            <div class="toggle" title="Glukose‑Einheit">
+              <button data-action="glc-mg" class="active">Glukose mg/dL</button>
+              <button data-action="glc-mmol">mmol/L</button>
+            </div>
+            <div class="toggle" title="Lipid‑Einheit">
+              <button data-action="lip-mg" class="active">Lipide mg/dL</button>
+              <button data-action="lip-mmol">mmol/L</button>
+            </div>
+            <label class="muted" style="margin-left:6px">Szenario:</label>
+            <select id="scenario"></select>
+            <label class="muted" style="margin-left:6px">Horizont:</label>
+            <input id="horizon_weeks" type="text" inputmode="decimal" style="width:72px" />
+            <span class="muted">Wochen</span>
+            <span class="sep">|</span>
+            <button data-action="export">Export JSON</button>
+            <label class="file-btn"><input id="import_file" type="file" accept="application/json" hidden>Import JSON</label>
+          </div>
+
+          <fieldset>
+            <legend>Demografie & Körper</legend>
+            <div class="row"><label for="sex">Geschlecht</label><select id="sex"><option value="male">männlich</option><option value="female">weiblich</option></select><div class="unit">—</div></div>
+            <div class="row"><label for="age">Alter</label><input id="age" type="text" inputmode="decimal"><div class="unit">Jahre</div></div>
+            <div class="row"><label for="height_cm">Größe</label><input id="height_cm" type="text" inputmode="decimal"><div class="unit">cm</div></div>
+            <div class="row"><label for="weight_kg">Gewicht</label><input id="weight_kg" type="text" inputmode="decimal"><div class="unit">kg</div></div>
+            <div class="row"><label for="waist_cm">Taille</label><input id="waist_cm" type="text" inputmode="decimal"><div class="unit">cm</div></div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Vitalparameter</legend>
+            <div class="row"><label for="rhr">Ruhepuls</label><input id="rhr" type="text" inputmode="decimal"><div class="unit">bpm</div></div>
+            <div class="row"><label for="sbp">SYS</label><input id="sbp" type="text" inputmode="decimal"><div class="unit">mmHg</div></div>
+            <div class="row"><label for="dbp">DIA</label><input id="dbp" type="text" inputmode="decimal"><div class="unit">mmHg</div></div>
+            <div class="row"><label for="pal">Aktivitätsfaktor (PAL)</label><input id="pal" type="text" inputmode="decimal"><div class="unit">× RMR</div></div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Blutwerte</legend>
+            <div class="row"><label for="glucose">Nüchtern‑Glukose</label><input id="glucose" type="text" inputmode="decimal"><div class="unit" id="u-glc-label">mg/dL</div></div>
+            <div class="row"><label for="insulin">Nüchtern‑Insulin</label><input id="insulin" type="text" inputmode="decimal"><div class="unit">µU/mL</div></div>
+            <div class="row"><label for="hba1c">HbA1c</label><input id="hba1c" type="text" inputmode="decimal"><div class="unit">%</div></div>
+            <div class="row"><label for="tc">Gesamt‑Cholesterin</label><input id="tc" type="text" inputmode="decimal"><div class="unit" id="u-lip-label-tc">mg/dL</div></div>
+            <div class="row"><label for="hdl">HDL</label><input id="hdl" type="text" inputmode="decimal"><div class="unit" id="u-lip-label-hdl">mg/dL</div></div>
+            <div class="row"><label for="tg">Triglyzeride</label><input id="tg" type="text" inputmode="decimal"><div class="unit" id="u-lip-label-tg">mg/dL</div></div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Energie</legend>
+            <div class="row"><label for="kcal_intake">Kalorienzufuhr (Basis)</label><input id="kcal_intake" type="text" inputmode="decimal"><div class="unit">kcal/Tag</div></div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Interventionen (wirken auf Bilanz)</legend>
+            <div class="row"><label for="steps_extra">Zusatz‑Schritte/Tag</label><input id="steps_extra" type="text" inputmode="decimal"><div class="unit">Schritte</div></div>
+            <div class="row"><label for="kcal_delta">ΔKalorien zur Basis</label><input id="kcal_delta" type="text" inputmode="decimal"><div class="unit">kcal/Tag</div></div>
+            <div class="row"><label for="strength_pw">Krafttraining</label><input id="strength_pw" type="text" inputmode="decimal"><div class="unit">Einheiten/Woche</div></div>
+          </fieldset>
+
+          <div class="abbar">
+            <strong>A/B‑Vergleich:</strong>
+            <button data-action="snapA">Snapshot A</button>
+            <button data-action="snapB">Snapshot B</button>
+            <span class="muted">|</span>
+            <button data-action="clearAB">A/B löschen</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Abgeleitete Kennzahlen & Live‑Wechselwirkungen</h2>
+        <div class="body">
+          <div class="cards" id="cards"></div>
+          <div class="chart-wrap">
+            <div class="chart-title">Gewichtsprojektion (linear, grob) – nächst <span id="h-weeks">12</span> Wochen</div>
+            <svg id="chart" width="100%" height="180" viewBox="0 0 600 180" preserveAspectRatio="none" aria-label="Gewichtsprojektion"></svg>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <footer class="footnote">Vereinfachte Näherungen (Mifflin‑St. Jeor, Friedewald, Uth‑Sørensen etc.). Keine Diagnose/Behandlung. Umrechnungen: Glukose 1 mmol/L ≈ 18.0182 mg/dL; Cholesterin 1 mmol/L ≈ 38.67 mg/dL; Triglyzeride 1 mmol/L ≈ 88.57 mg/dL. Energie‑Heuristiken: Schritt ≈ 0,045 kcal; Kraft‑Einheit ≈ 50 kcal/Tag Ø.</footer>
+  </div>
+
+  <script type="module" src="js/ui.js"></script>
+</body>
+</html>
