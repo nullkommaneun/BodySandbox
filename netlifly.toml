@@ -1,0 +1,8 @@
+[build]
+  command = ""         # kein Build nötig
+  publish = "public"   # hier liegt index.html
+
+[dev]
+  command = "" 
+  port = 8888
+  publish = "public"
